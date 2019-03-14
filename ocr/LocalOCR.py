@@ -17,7 +17,7 @@ import re
 
 class LocalOCR(object):
 
-    def __init__(self, ocr_language):
+    def __init__(self):
         tools = pyocr.get_available_tools()
         if len(tools) == 0:
             print("No OCR tool found")
@@ -38,9 +38,9 @@ class LocalOCR(object):
     def process(self, pdf_filename, pdf_resolution, imageformat, do_orientation):
         final_text = ""
 
-        image_pdf = Image(filename="/private/tmp/app_test.pdf",
-                          resolution=300)
-        image_page = image_pdf.convert("png")
+        image_pdf = Image(filename=pdf_filename,
+                          resolution=pdf_resolution)
+        image_page = image_pdf.convert(imageformat)
 
         page = 1
         process_start = time.time()
@@ -57,7 +57,7 @@ class LocalOCR(object):
             img_per_page.save(filename="buffer.png")
             page_start = time.time()
             txt = self.image2txt_pyocr(
-                img_per_page.make_blob("png"), True)
+                img_per_page.make_blob("png"), do_orientation)
             page_elaboration = time.time() - page_start
             print("page %s - size %s - process %2d sec. - text %s" %
                   (page, img_per_page.size, page_elaboration, len(txt)))
@@ -74,7 +74,6 @@ class LocalOCR(object):
         txt = ""
         orientation = ""
         img_per_page = PI.open(io.BytesIO(image))
-        do_orientation = True
         if do_orientation is True:
             try:
                 if self.tool.can_detect_orientation():
@@ -100,17 +99,17 @@ class LocalOCR(object):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Process input PDF file to CSV by OCR')
-    parser.add_argument('pdf_filename', nargs='?', default='INPUT.pdf',
+    parser.add_argument('--pdf_filename', nargs='?', default='INPUT.pdf', dest='pdf_filename'
                         help='Input PDF file')
-    parser.add_argument('pdf_resolution', nargs='?', default=300,
+    parser.add_argument('--pdf_resolution', nargs='?', default=300, dest='pdf_resolution'
                         help='Input PDF dpi resolution')
-    parser.add_argument('ocr_language', nargs='?', default='fra',
+    parser.add_argument('--ocr_language', nargs='?', default='fra', dest='ocr_language',
                         help='OCR language')
-    parser.add_argument('ocr_imageformat', nargs='?', default='png',
+    parser.add_argument('--ocr_imageformat', nargs='?', default='png', dest='ocr_imageformat',
                         help='OCR image format')
-    parser.add_argument('ocr_do_orientation', nargs='?', default=True,
+    parser.add_argument('--ocr_do_orientation', nargs='?', default=True, dest='ocr_do_orientation',
                         help='OCR do orientation test')
-    parser.add_argument('text_output', nargs='?', default="output.txt",
+    parser.add_argument('--text_output', nargs='?', default="output.txt", dest='text_output'
                         help='OCR text output')
     args = parser.parse_args()
 
